@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>カード作成</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f4f4f5;--fg:#18181b;--card:#fff;--bd:#d4d4d8;--ac:#18181b;--acfg:#fff;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b0b0c;--fg:#f4f4f5;--card:#18181b;--bd:#3f3f46;--ac:#f4f4f5;--acfg:#18181b}}
+:root[data-theme="dark"]{--bg:#0b0b0c;--fg:#f4f4f5;--card:#18181b;--bd:#3f3f46;--ac:#f4f4f5;--acfg:#18181b}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:"Noto Sans JP",system-ui,sans-serif;display:flex;justify-content:center;padding:20px 14px 40px}
+.wrap{width:100%;max-width:760px;display:flex;flex-direction:column;gap:16px}
+canvas{width:100%;height:auto;display:block;border-radius:10px;border:1px solid var(--bd);background:#000}
+.panel{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px;display:grid;gap:12px}
+label{font-size:13px;display:grid;gap:6px;opacity:.9}
+input[type=text],textarea{font:inherit;font-size:16px;padding:10px 12px;border-radius:8px;border:1px solid var(--bd);background:var(--bg);color:var(--fg);width:100%}
+textarea{min-height:76px;resize:vertical}
+input[type=file]{font-size:14px;max-width:100%}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:520px){.row{grid-template-columns:1fr}}
+button{font:inherit;font-size:16px;padding:12px;border-radius:8px;border:0;background:var(--ac);color:var(--acfg);cursor:pointer}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <canvas id="c" width="1200" height="630"></canvas>
+  <div class="panel">
+    <label>画像<input type="file" id="img" accept="image/*"></label>
+    <label>言葉<textarea id="quote"></textarea></label>
+    <div class="row">
+      <label>名前<input type="text" id="name"></label>
+      <label>ID<input type="text" id="uid"></label>
+    </div>
+    <button id="dl">画像を保存</button>
+  </div>
+</div>
+<script>
+const W=1200,H=630;
+const cv=document.getElementById('c'),ctx=cv.getContext('2d');
+const $=id=>document.getElementById(id);
+let photo=null;
+const FF='"Noto Sans JP","Hiragino Sans","Yu Gothic",Meiryo,sans-serif';
+
+$('img').addEventListener('change',e=>{
+  const f=e.target.files[0]; if(!f) return;
+  const r=new FileReader();
+  r.onload=()=>{const i=new Image();i.onload=()=>{photo=i;draw()};i.src=r.result};
+  r.readAsDataURL(f);
+});
+['quote','name','uid'].forEach(id=>$(id).addEventListener('input',draw));
+
+function wrap(text,font,maxW){
+  ctx.font=font;
+  const out=[];
+  text.split('\n').forEach(p=>{
+    if(p===''){out.push('');return}
+    const toks=p.match(/[A-Za-z0-9'’.,!?:;\-_]+|\s|[\s\S]/gu)||[];
+    let line='';
+    toks.forEach(t=>{
+      const test=line+t;
+      if(ctx.measureText(test).width>maxW && line.trim()!==''){
+        out.push(line.trimEnd()); line=t.trimStart();
+        // very long single token
+        while(ctx.measureText(line).width>maxW && line.length>1){
+          let k=line.length-1;
+          while(k>1 && ctx.measureText(line.slice(0,k)).width>maxW)k--;
+          out.push(line.slice(0,k)); line=line.slice(k);
+        }
+      } else line=test;
+    });
+    out.push(line.trimEnd());
+  });
+  return out;
+}
+
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  // background
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
+  // user image (no circle, no default)
+  if(photo){
+    const aw=600,ah=H;
+    const s=Math.max(aw/photo.width,ah/photo.height);
+    const w=photo.width*s,h=photo.height*s;
+    ctx.save();
+    ctx.beginPath();ctx.rect(0,0,aw,ah);ctx.clip();
+    ctx.drawImage(photo,(aw-w)/2,(ah-h)/2,w,h);
+    ctx.restore();
+  }
+  // gradient overlay: transparent -> black
+  const g=ctx.createLinearGradient(260,0,570,0);
+  g.addColorStop(0,'rgba(0,0,0,0)');
+  g.addColorStop(0.35,'rgba(0,0,0,0.35)');
+  g.addColorStop(0.7,'rgba(0,0,0,0.85)');
+  g.addColorStop(1,'rgba(0,0,0,1)');
+  ctx.fillStyle=g;ctx.fillRect(260,0,W-260,H);
+  ctx.fillStyle='#000';ctx.fillRect(570,0,W-570,H);
+
+  // text
+  const q=$('quote').value.trim()||' ';
+  const name=$('name').value.trim();
+  let id=$('uid').value.trim();
+  if(id && !id.startsWith('@')) id='@'+id;
+  const cxT=855,maxW=560;
+  let qs=58,lines;
+  for(;;){
+    lines=wrap(q,`300 ${qs}px ${FF}`,maxW);
+    const lh=qs*1.3;
+    if((lines.length*lh<=300||qs<=26)) break;
+    qs-=2;
+  }
+  const lh=qs*1.3;
+  const nameS=32,idS=18;
+  const qH=lines.length*lh;
+  const total=qH+(name?24+nameS*1.2:0)+(id?14+idS*1.2:0);
+  let y=315-total/2;
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillStyle='#fff';ctx.font=`300 ${qs}px ${FF}`;
+  lines.forEach((l,i)=>ctx.fillText(l,cxT,y+lh*i+lh/2));
+  y+=qH;
+  if(name){
+    y+=24;
+    ctx.font=`italic 300 ${nameS}px ${FF}`;ctx.fillStyle='#fff';
+    ctx.fillText('- '+name,cxT,y+nameS*0.6);
+    y+=nameS*1.2;
+  }
+  if(id){
+    y+=14;
+    ctx.font=`300 ${idS}px ${FF}`;ctx.fillStyle='#777';
+    ctx.fillText(id,cxT,y+idS*0.6);
+  }
+}
+
+$('dl').addEventListener('click',()=>{
+  const a=document.createElement('a');
+  a.download='card.png';a.href=cv.toDataURL('image/png');a.click();
+});
+
+draw();
+if(document.fonts){
+  Promise.all([document.fonts.load('300 40px "Noto Sans JP"'),document.fonts.load('400 40px "Noto Sans JP"')]).then(draw).catch(()=>{});
+  document.fonts.ready.then(draw);
+}
+</script>
+</body>
+</html>
