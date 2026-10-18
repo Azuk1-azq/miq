@@ -5,12 +5,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>名言画像メーカー</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="preconnect" href="https:
-<link rel="preconnect" href="https:
-<link rel="stylesheet" href="https:
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=M+PLUS+1p&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap">
 <style>
+/* Layout: 画像プレビューを主役に、右側(スマホでは下)に入力欄を置く2カラム */
 :root{
-  --bg:#e9ecea;
+  --bg:#e9ecea;          /* 紙のような薄い緑灰 */
   --panel:#f7f8f7;
   --ink:#141716;
   --sub:#5d6462;
@@ -24,6 +25,7 @@
   --bg:#101312;--panel:#181c1b;--ink:#e8ecea;--sub:#99a29f;--line:#2c3331;--accent:#8fa0ff;--accent-ink:#0d1030;--shadow:rgba(0,0,0,.5);color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#101312;--panel:#181c1b;--ink:#e8ecea;--sub:#99a29f;--line:#2c3331;--accent:#8fa0ff;--accent-ink:#0d1030;--shadow:rgba(0,0,0,.5);color-scheme:dark}
+
 *{box-sizing:border-box}
 body{
   background:var(--bg);color:var(--ink);font:15px/1.7 var(--ui);
@@ -36,12 +38,14 @@ header h1{margin:0;font-size:24px;line-height:1.3;letter-spacing:.02em;text-wrap
 header p{margin:4px 0 0;color:var(--sub);font-size:14px}
 .layout{display:grid;gap:24px;grid-template-columns:minmax(0,1fr) 340px;align-items:start}
 @media (max-width:860px){.layout{grid-template-columns:minmax(0,1fr)}}
+
 .stage{min-width:0;display:grid;gap:12px}
 .canvas-box{border:1px solid var(--line);box-shadow:0 10px 30px var(--shadow);line-height:0;background:#000}
 #cv{display:block;width:100%;height:auto;aspect-ratio:1200/630}
 .canvas-box.drop{outline:2px dashed var(--accent);outline-offset:4px}
 .actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 .note{color:var(--sub);font-size:13px;margin:0}
+
 .panel{min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:20px;display:grid;gap:18px}
 .field{display:grid;gap:6px;min-width:0}
 .field>label,.field>legend{font-weight:700;font-size:14px;padding:0}
@@ -53,14 +57,17 @@ textarea,input[type=text]{
 textarea{resize:vertical;min-height:112px;line-height:1.6}
 .hint{color:var(--sub);font-size:12.5px;line-height:1.55}
 .count{justify-self:end;color:var(--sub);font-size:12px;font-variant-numeric:tabular-nums}
+
 .seg{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:4px;overflow:hidden}
 .seg label{display:block;text-align:center;padding:8px 6px;cursor:pointer;background:var(--bg);font-size:14px}
 .seg input{position:absolute;opacity:0;pointer-events:none}
 .seg input:checked+span{display:block;margin:-8px -6px;padding:8px 6px;background:var(--ink);color:var(--bg);font-weight:700}
 .seg label+label{border-left:1px solid var(--line)}
 .seg label:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:-2px}
+
 .check{display:flex;gap:10px;align-items:center;cursor:pointer;font-size:14px}
 .check input{width:18px;height:18px;accent-color:var(--accent);margin:0}
+
 button,.btn{
   font:inherit;font-size:14px;border-radius:4px;padding:9px 16px;cursor:pointer;
   border:1px solid var(--line);background:var(--panel);color:var(--ink);
@@ -76,7 +83,10 @@ button:disabled{opacity:.5;cursor:default}
 </style>
 </head>
 <body>
+
+
 <div class="wrap">
+
   <div class="layout">
     <section class="stage" aria-label="プレビュー">
       <div class="canvas-box" id="box">
@@ -88,20 +98,24 @@ button:disabled{opacity:.5;cursor:default}
         <p class="status" id="status" role="status" aria-live="polite"></p>
       </div>
     </section>
+
     <section class="panel" aria-label="入力">
       <div class="field">
         <label for="text">名言</label>
         <textarea id="text" maxlength="200">名言をここに入力</textarea>
         <div class="count" id="count">0 / 200</div>
       </div>
+
       <div class="field">
         <label for="author">表示する名前</label>
         <input type="text" id="author" maxlength="30" value="名前" autocomplete="off">
       </div>
+
       <div class="field">
         <label for="handle">ユーザー名(@の後ろ)</label>
         <input type="text" id="handle" maxlength="32" value="username" autocomplete="off" autocapitalize="off" spellcheck="false">
       </div>
+
       <fieldset class="field">
         <legend>背景の色</legend>
         <div class="seg">
@@ -109,6 +123,7 @@ button:disabled{opacity:.5;cursor:default}
           <label><input type="radio" name="style" value="white"><span>ホワイト</span></label>
         </div>
       </fieldset>
+
       <fieldset class="field">
         <legend>アイコンの色</legend>
         <div class="seg">
@@ -116,27 +131,44 @@ button:disabled{opacity:.5;cursor:default}
           <label><input type="radio" name="tone" value="color"><span>カラー</span></label>
         </div>
       </fieldset>
+
       <div class="field">
         <label class="check"><input type="checkbox" id="mark" checked>右下に文字を表示する</label>
         <input type="text" id="marktext" maxlength="40" value="Make it a Quote#6660" aria-label="右下に表示する文字" autocomplete="off">
       </div>
+
       <div class="field">
         <label for="file">アイコン画像</label>
         <div class="file-row">
           <label class="btn" for="file">画像を選ぶ</label>
-          <input type="file" id="file" accept="image
+          <input type="file" id="file" accept="image/*">
+          <button type="button" id="reset">サンプルに戻す</button>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+/* ===== 名言画像の寸法・配置(Discord BOT の bot.py と同じ値) ===== */
 const MG={W:1200,H:630,CX:855,AREA_W:590,TITLE_MAX:60,TITLE_MIN:20,AUTHOR:35,HANDLE:20,
   SHEAR:0.17,AUTHOR_DX:1.5,TITLE_BASE:306,GAP_AUTHOR:66,GAP_HANDLE:30,TOP_RATIO:49/60,
   BOTTOM_OFF:2,LINE_RATIO:1.35,FADE:[220,570],BLOCK_MAX:520};
-const KIN=new Set(Array.from("、。，．・」』）】〉》〕｝！？!?,.)]}:;…ー々ぁぃぅぇぉっゃゅょゎァィゥェォッャュョヮ"));
-const OPEN=new Set(Array.from("「『（【〈《〔｛([{"));
+const KIN=new Set(Array.from("、。，．・」』）】〉》〕｝！？!?,.)]}:;…ー々ぁぃぅぇぉっゃゅょゎァィゥェォッャュョヮ")); // 行頭禁則
+const OPEN=new Set(Array.from("「『（【〈《〔｛([{"));                                                 // 行末禁則
 const TOKEN=/[A-Za-z0-9_'’\-]+|\s+|[\s\S]/gu;
 const FAM='"M PLUS 1p","Hiragino Sans","Noto Sans JP",sans-serif';
+
 const cv=document.getElementById("cv"),ctx=cv.getContext("2d");
 const $=id=>document.getElementById(id);
 const el={text:$("text"),author:$("author"),handle:$("handle"),mark:$("mark"),marktext:$("marktext"),file:$("file"),
   count:$("count"),status:$("status"),box:$("box"),save:$("save"),copy:$("copy"),reset:$("reset"),hint:$("saveHint")};
+
 function m(size,t){ctx.font="400 "+size+"px "+FAM;return ctx.measureText(t).width;}
+
+/* 幅に合わせた自動改行。句読点の行頭・開き括弧の行末を避け、英単語は途中で切らない */
 function wrap(text,size,maxW){
   const lines=[];
   for(const para of text.split("\n")){
@@ -166,7 +198,10 @@ function ellipsize(t,size,maxW){
   while(a.length&&m(size,a.join("")+"…")>maxW)a.pop();
   return a.join("")+"…";
 }
+
+/* ===== アイコン ===== */
 let avatar=null,avatarId=0,layerKey="",layer=null;
+
 function sampleAvatar(){
   const c=document.createElement("canvas");c.width=c.height=1024;
   const g=c.getContext("2d");
@@ -176,7 +211,7 @@ function sampleAvatar(){
   g.beginPath();g.ellipse(512,1010,340,360,0,Math.PI,0);g.fill();
   return c;
 }
-function toSquare(img,w,h){
+function toSquare(img,w,h){ // 中央で正方形に切り抜く(ImageOps.fit 相当)
   const s=Math.min(w,h),c=document.createElement("canvas");
   c.width=c.height=Math.min(1024,s);
   const g=c.getContext("2d");g.imageSmoothingQuality="high";
@@ -184,7 +219,7 @@ function toSquare(img,w,h){
   return c;
 }
 async function loadFile(file){
-  if(!file||!/^image\
+  if(!file||!/^image\//.test(file.type)){say("画像ファイルを選んでください。");return;}
   try{
     let sq;
     if(window.createImageBitmap){
@@ -199,6 +234,8 @@ async function loadFile(file){
     avatar=sq;avatarId++;say("");render();
   }catch(e){say("この画像は読み込めませんでした。別の画像を選んでください。");}
 }
+
+/* 左から右へ smoothstep で背景色に溶かしたアイコン層を作る */
 function buildLayer(dark,color){
   const key=avatarId+"|"+dark+"|"+color;
   if(key===layerKey&&layer)return layer;
@@ -221,9 +258,12 @@ function buildLayer(dark,color){
   o.putImageData(d,0,0);
   layerKey=key;layer=off;return off;
 }
+
+/* ===== 描画 ===== */
 let token=0;
 function isColor(){return document.querySelector('input[name=tone]:checked').value==="color";}
 function currentText(){return el.text.value.replace(/\r\n?/g,"\n").replace(/\\n/g,"\n");}
+
 async function render(){
   const my=++token;
   const text=currentText(),author=el.author.value||"名無し",handle="@"+(el.handle.value||"user");
@@ -242,9 +282,10 @@ async function render(){
     ctx.fillText(mt,MG.W-10,MG.H-16);
   }
 }
+
 function drawQuote(text,author,handle,fg,sub){
   let size=MG.TITLE_MAX,lines=[],lh=0,fixed=0,fit=false;
-  for(size=MG.TITLE_MAX;size>=MG.TITLE_MIN;size-=2){
+  for(size=MG.TITLE_MAX;size>=MG.TITLE_MIN;size-=2){ // 収まる最大サイズを探す
     lines=wrap(text,size,MG.AREA_W);
     lh=Math.round(size*MG.LINE_RATIO);
     fixed=MG.TOP_RATIO*size+MG.GAP_AUTHOR+MG.GAP_HANDLE+MG.BOTTOM_OFF;
@@ -257,12 +298,14 @@ function drawQuote(text,author,handle,fg,sub){
   }
   const n=lines.length,topOff=MG.TOP_RATIO*size;
   const blockH=topOff+(n-1)*lh+MG.GAP_AUTHOR+MG.GAP_HANDLE+MG.BOTTOM_OFF;
+  // 1行のとき名言の基準線が TITLE_BASE になるよう、同じ中心から上下に広げる
   const center=(MG.TITLE_BASE-MG.TOP_RATIO*MG.TITLE_MAX+MG.TITLE_BASE+MG.GAP_AUTHOR+MG.GAP_HANDLE+MG.BOTTOM_OFF)/2;
   const base=center-blockH/2+topOff;
   ctx.textBaseline="alphabetic";ctx.textAlign="left";ctx.fillStyle=fg;
   ctx.font="400 "+size+"px "+FAM;
   lines.forEach((ln,i)=>ctx.fillText(ln,MG.CX-m(size,ln)/2,base+i*lh));
   const aBase=base+(n-1)*lh+MG.GAP_AUTHOR,hBase=aBase+MG.GAP_HANDLE;
+  // 作者行: 日本語フォントに斜体が無いので、基準線を軸に傾けて擬似斜体にする
   const at=ellipsize("- "+author,MG.AUTHOR,MG.AREA_W);
   ctx.save();
   ctx.translate(MG.CX+MG.AUTHOR_DX,aBase);ctx.transform(1,0,-MG.SHEAR,1,0,0);
@@ -273,10 +316,13 @@ function drawQuote(text,author,handle,fg,sub){
   ctx.font="400 "+MG.HANDLE+"px "+FAM;ctx.textAlign="left";ctx.fillStyle=sub;
   ctx.fillText(ht,MG.CX-m(MG.HANDLE,ht)/2,hBase);
 }
+
+/* ===== 操作 ===== */
 function say(t){el.status.textContent=t;}
 let timer=0;
 function later(){clearTimeout(timer);timer=setTimeout(render,60);}
 function updateCount(){el.count.textContent=Array.from(el.text.value).length+" / 200";}
+
 ["input","change"].forEach(ev=>{
   el.text.addEventListener(ev,()=>{updateCount();later();});
   el.author.addEventListener(ev,later);
@@ -288,10 +334,13 @@ document.querySelectorAll('input[name=tone]').forEach(r=>r.addEventListener("cha
 document.querySelectorAll('input[name=style]').forEach(r=>r.addEventListener("change",later));
 el.file.addEventListener("change",()=>{loadFile(el.file.files[0]);el.file.value="";});
 el.reset.addEventListener("click",()=>{avatar=sampleAvatar();avatarId++;say("");render();});
+
 ["dragenter","dragover"].forEach(ev=>el.box.addEventListener(ev,e=>{e.preventDefault();el.box.classList.add("drop");}));
 ["dragleave","drop"].forEach(ev=>el.box.addEventListener(ev,e=>{e.preventDefault();el.box.classList.remove("drop");}));
 el.box.addEventListener("drop",e=>{const f=e.dataTransfer&&e.dataTransfer.files[0];if(f)loadFile(f);});
+
 function toBlob(){return new Promise((ok,ng)=>cv.toBlob(b=>b?ok(b):ng(new Error("blob")),"image/png"));}
+
 let dl=undefined;
 async function getDownloads(){
   if(dl!==undefined)return dl;
@@ -322,11 +371,14 @@ el.copy.addEventListener("click",async()=>{
   }catch(e){say("この環境ではコピーできません。「画像を保存」を使ってください。");}
 });
 if(!window.ClipboardItem||!navigator.clipboard||!navigator.clipboard.write)el.copy.hidden=true;
+
+/* 最初の表示 */
 avatar=sampleAvatar();avatarId=1;
 updateCount();
 render();
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>render());
 })();
 </script>
+
 </body>
 </html>
